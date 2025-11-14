@@ -1,0 +1,95 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-network-policy
+  namespace: webapp
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow traffic from frontend pods
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 5000
+  # Allow from loadtest pod
+  - from:
+    - podSelector:
+        matchLabels:
+          app: loadtest
+    ports:
+    - protocol: TCP
+      port: 5000
+  # Allow Istio control plane
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    ports:
+    - protocol: TCP
+      port: 15012
+    - protocol: TCP
+      port: 15021
+    - protocol: TCP
+      port: 15090
+    - protocol: TCP
+      port: 15020
+  # Allow Prometheus to scrape
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+      podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 15090
+    - protocol: TCP
+      port: 15020
+  # Allow Istio ingress gateway
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+      podSelector:
+        matchLabels:
+          istio: ingressgateway
+  # Allow inter-sidecar communication
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow to Istio control plane
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    ports:
+    - protocol: TCP
+      port: 15012
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 15014
+  # Allow to frontend
+  - to:
+    - podSelector:
+        matchLabels:
+          app: frontend

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Web App - Calico + Istio Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        .status {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        .label {
+            font-weight: bold;
+            color: #667eea;
+        }
+        .value {
+            color: #333;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .response {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+            border-left: 4px solid #4caf50;
+        }
+        .response.error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+        .response pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 0.9em;
+            color: #333;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .badge.calico {
+            background: #ff9800;
+            color: white;
+        }
+        .badge.istio {
+            background: #2196f3;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Simple Web App</h1>
+        <p class="subtitle">
+            <span class="badge calico">Calico Network Policy</span>
+            <span class="badge istio">Istio Service Mesh</span>
+        </p>
+        
+        <div class="status">
+            <div class="status-item">
+                <span class="label">Frontend Status:</span>
+                <span class="value" id="frontend-status">✅ Running</span>
+            </div>
+            <div class="status-item">
+                <span class="label">Backend Connection:</span>
+                <span class="value" id="backend-status">⏳ Testing...</span>
+            </div>
+        </div>
+
+        <button onclick="testBackendHealth()">🏥 Test Backend Health</button>
+        <button onclick="fetchBackendData()">📊 Fetch Backend Data</button>
+        
+        <div id="response" class="response"></div>
+    </div>
+
+    <script>
+        async function testBackendHealth() {
+            const responseDiv = document.getElementById('response');
+            const backendStatus = document.getElementById('backend-status');
+            
+            try {
+                responseDiv.style.display = 'block';
+                responseDiv.className = 'response';
+                responseDiv.innerHTML = '<p>⏳ Connecting to backend...</p>';
+                
+                const response = await fetch('/api/backend/');
+                const data = await response.json();
+                
+                responseDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                backendStatus.textContent = '✅ Connected';
+                backendStatus.style.color = '#4caf50';
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.innerHTML = '<pre>❌ Error: ' + error.message + '</pre>';
+                backendStatus.textContent = '❌ Disconnected';
+                backendStatus.style.color = '#f44336';
+            }
+        }
+
+        async function fetchBackendData() {
+            const responseDiv = document.getElementById('response');
+            
+            try {
+                responseDiv.style.display = 'block';
+                responseDiv.className = 'response';
+                responseDiv.innerHTML = '<p>⏳ Fetching data...</p>';
+                
+                const response = await fetch('/api/backend/api/data');
+                const data = await response.json();
+                
+                responseDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.innerHTML = '<pre>❌ Error: ' + error.message + '</pre>';
+            }
+        }
+
+        // Test backend connection on page load
+        window.onload = function() {
+            testBackendHealth();
+        };
+    </script>
+</body>
+</html>

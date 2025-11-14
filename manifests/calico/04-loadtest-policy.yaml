@@ -1,0 +1,64 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: loadtest-policy
+  namespace: webapp
+spec:
+  podSelector:
+    matchLabels:
+      app: loadtest
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow Istio control plane to communicate with sidecar
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    ports:
+    - protocol: TCP
+      port: 15012
+    - protocol: TCP
+      port: 15021
+    - protocol: TCP
+      port: 15090
+    - protocol: TCP
+      port: 15020
+  egress:
+  # Allow to frontend
+  - to:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 80
+  # Allow to backend (in case needed)
+  - to:
+    - podSelector:
+        matchLabels:
+          app: backend
+    ports:
+    - protocol: TCP
+      port: 5000
+  # Allow DNS
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow to Istio control plane
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    ports:
+    - protocol: TCP
+      port: 15012
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 15014
