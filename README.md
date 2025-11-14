@@ -4,6 +4,12 @@
 
 This is a working implementation of a simple 2-pod architecture with Calico (network policy) and Istio (service mesh) on Minikube for M2 Mac.
 
+![status](https://img.shields.io/badge/status-completed-success)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.28-326CE5?logo=kubernetes&logoColor=white)
+![Calico](https://img.shields.io/badge/Calico-v3.27-FF6A00)
+![Istio](https://img.shields.io/badge/Istio-v1.20-466BB0?logo=istio&logoColor=white)
+![security](https://img.shields.io/badge/security-zero--trust--architecture-critical)
+
 **Architecture:** Frontend Pod → Backend Pod
 
 ## 📋 Prerequisites
