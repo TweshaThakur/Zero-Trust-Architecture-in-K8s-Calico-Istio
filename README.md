@@ -275,5 +275,4 @@ istioctl proxy-status
 kubectl exec -n webapp $(kubectl get pod -n webapp -l app=frontend -o jsonpath='{.items[0].metadata.name}') \
   -c frontend -- curl -s http://backend-service:5000/health
 
-**Author**: Setup Guide for Simple 2-Pod Architecture  
-**Last Updated**: October 31, 2025
+**Author**: Twesha Thakur
