@@ -91,6 +91,7 @@ minikube start --driver=docker --memory=6144 --cpus=4 --cni=false \
   --extra-config=kubeadm.pod-network-cidr=192.168.0.0/16
 
 # Install Calico
+```
 kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/tigera-operator.yaml
 
 kubectl create -f - <<EOF
@@ -106,8 +107,11 @@ spec:
 EOF
 
 kubectl wait --for=condition=ready pod --all -n calico-system --timeout=300s
+```
+
 2. Build & Deploy Application
-basheval $(minikube docker-env)
+```
+eval $(minikube docker-env)
 
 # Build images
 cd app/backend && docker build -t simple-backend:v1 .
@@ -122,42 +126,60 @@ kubectl apply -f manifests/04-frontend-deployment.yaml
 kubectl apply -f manifests/05-frontend-service.yaml
 
 kubectl wait --for=condition=ready pod --all -n webapp --timeout=180s
+```
 3. Apply Network Policies
-bashkubectl apply -f manifests/calico/
+
+```
+kubectl apply -f manifests/calico/
 kubectl get networkpolicy -n webapp
-4. Install Istio
-bash# Download & install
+```
+6. Install Istio
+```
+Download & install
+```
 curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.20.0 sh -
 cd istio-1.20.0
 export PATH=$PWD/bin:$PATH
 
 istioctl install --set profile=demo -y
 kubectl wait --for=condition=ready pod --all -n istio-system --timeout=300s
+```
 
 # Enable sidecar injection
+```
 kubectl label namespace webapp istio-injection=enabled
 kubectl label namespace istio-system name=istio-system
-
+```
 # Restart pods to inject sidecars
+```
 kubectl delete pod --all -n webapp
 kubectl wait --for=condition=ready pod --all -n webapp --timeout=180s
+```
 
 # Apply Istio configs
+```
 cd ..
 kubectl apply -f istio/
+```
 
 # Install observability
+```
 cd istio-1.20.0
 kubectl apply -f samples/addons/kiali.yaml
 kubectl apply -f samples/addons/prometheus.yaml
 kubectl apply -f samples/addons/grafana.yaml
 cd ..
+```
 5. Access Application
-bash# Terminal 1: Port-forward
+```
+Terminal 1: Port-forward
 kubectl port-forward -n webapp svc/frontend-service 8080:80
+```
 
 # Terminal 2: Kiali dashboard
+```
 istioctl dashboard kiali
+```
 
 # Browser: http://localhost:8080
 🔒 Security Implementation
@@ -192,40 +214,48 @@ Istio Service Mesh (istio/)
 Gateway (01-gateway.yaml): External entry point
 VirtualService (02-virtual-service.yaml): Routes traffic to frontend
 Automatic mTLS: All service-to-service traffic encrypted
-📊 Observability
+
+#📊 Observability
 Kiali Dashboard
 bashistioctl dashboard kiali
 
 Real-time service mesh topology
 
-🔒 mTLS indicators on all connections
+#🔒 mTLS indicators on all connections
 Request rates, latencies, error rates
 
 Generate Traffic
 
-bashkubectl run loadtest -n webapp --image=curlimages/curl --labels=app=loadtest \
+```kubectl run loadtest -n webapp --image=curlimages/curl --labels=app=loadtest \
   --command -- sh -c "while true; do curl -s http://frontend-service/api/backend/ > /dev/null; sleep 2; done"
-Grafana & Prometheus
+```
+#Grafana & Prometheus
+```
 bashistioctl dashboard grafana    # Pre-built Istio dashboards
 istioctl dashboard prometheus  # Raw metrics
-
+```
 🐛 Troubleshooting
 
 Pods Stuck at 1/2
 Issue: Istio sidecars not starting
+
 Fix: Ensure network policies are applied and istio-system is labeled
-bashkubectl apply -f manifests/calico/
+kubectl apply -f manifests/calico/
 kubectl label namespace istio-system name=istio-system --overwrite
 kubectl delete pod --all -n webapp
+
 Backend Connection Errors
 Issue: "Upgrade Required" error in browser
+
 Fix: Frontend already configured correctly. Rebuild if needed:
 basheval $(minikube docker-env)
 cd app/frontend && docker build -t simple-frontend:v2 .
 kubectl delete deployment frontend -n webapp
 kubectl apply -f manifests/04-frontend-deployment.yaml
+
 Cannot Access NodePort
 Issue: 192.168.49.2:30080 times out
+
 Fix: Use port-forward on macOS:
 bashkubectl port-forward -n webapp svc/frontend-service 8080:80
 📋 Verification Commands
